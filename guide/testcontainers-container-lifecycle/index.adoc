@@ -1,6 +1,6 @@
 ---
 title: "Testcontainers container lifecycle management using JUnit 5"
-date: 2023-03-04T09:39:58+05:30
+date: 2023-03-03T09:39:58+05:30
 draft: false
 description: This guide will explain how to manage container lifecycle with Testcontainers using JUnit 5 lifecycle callbacks and JUnit 5 Extension annotations. We will also look into how to use Singleton Containers pattern to use same containers for multiple tests.
 repo: https://github.com/testcontainers/tc-guide-testcontainers-lifecycle
@@ -48,7 +48,54 @@ Create a *CustomerService.java* class with methods to create a customer and retr
 
 [source,java]
 ----
-include::{codebase}/src/main/java/com/testcontainers/demo/CustomerService.java[]
+package com.testcontainers.demo;
+
+import java.sql.*;
+import java.util.*;
+
+public class CustomerService {
+
+   private final String url;
+   private final String username;
+   private final String password;
+
+   public CustomerService(String url,
+                          String username,
+                          String password) {
+       this.url = url;
+       this.username = username;
+       this.password = password;
+       createCustomersTableIfNotExists();
+   }
+
+   public void createCustomer(Customer customer) {
+        ...
+        ...
+   }
+
+   public List<Customer> getAllCustomers() {
+        ...
+        ...
+   }
+
+   public void deleteAllCustomers() {
+        ...
+        ...
+   }
+
+   private void createCustomersTableIfNotExists() {
+        ...
+        ...
+   }
+
+   private Connection getConnection() {
+       try {
+           return DriverManager.getConnection(url, username, password);
+       } catch (Exception e) {
+           throw new RuntimeException(e);
+       }
+   }
+}
 ----
 
 Let us understand what is going on in CustomerService class.
@@ -133,7 +180,6 @@ public abstract class AbstractIntegrationTest {
 
    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(DockerImageName.parse("postgres:15-alpine"));
    static KafkaContainer kafka = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:5.4.3"));
-
 
    static {
        postgres.start();
