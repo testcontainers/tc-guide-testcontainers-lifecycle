@@ -1,0 +1,277 @@
+---
+title: "Testcontainers container lifecycle management using JUnit 5"
+date: 2023-03-04T09:39:58+05:30
+draft: false
+description: This guide will explain how to manage container lifecycle with Testcontainers using JUnit 5 lifecycle callbacks and JUnit 5 Extension annotations. We will also look into how to use Singleton Containers pattern to use same containers for multiple tests.
+repo: https://github.com/testcontainers/tc-guide-testcontainers-lifecycle
+---
+:toc:
+:toclevels: 2
+:codebase: https://raw.githubusercontent.com/testcontainers/tc-guide-testcontainers-lifecycle/main
+
+In this guide you will learn how to
+
+* Run an instance of a Docker container using the Testcontainers API
+* Manage the lifecycle of a container using JUnit 5 lifecycle callbacks
+* Manage the lifecycle of a container using JUnit 5 Extension annotations
+* Using Singleton Containers Pattern
+* Caveat of using JUnit 5 Extension annotations with Singleton Containers Pattern
+
+== Prerequisites
+* Java 17+
+* Your favorite IDE (Intellij IDEA, Eclipse, NetBeans, VS Code)
+* A Docker environment supported by Testcontainers https://www.testcontainers.org/supported_docker_environment/
+
+== What we are going to achieve in this guide
+We are going to learn how we can start containers with Testcontainers using JUnit 5 lifecycle callback methods and
+using JUnit 5 Extension annotations. Also, we are going to learn how to use the same set of containers for your entire test suite
+using the Singleton Container Pattern approach. Finally, we are going to look at a common mistake of
+using the Singleton Container Pattern approach in conjunction with JUnit 5 Extension annotations and how we can solve that issue.
+
+== Getting Started
+Let us create a Java project using either Maven and add the *Postgres JDBC driver*, *JUnit 5* and *Testcontainers* dependencies as follows:
+
+[source,xml,indent=0]
+----
+include::{codebase}/pom.xml[lines="18..47"]
+----
+
+We are going to create a simple *CustomerService* class to manage customer details.
+First let us create *Customer.java* class as follows:
+
+[source,java]
+----
+include::{codebase}/src/main/java/com/testcontainers/demo/Customer.java[]
+----
+
+Create a *CustomerService.java* class with methods to create a customer and retrieve all customers from the database as follows:
+
+[source,java]
+----
+include::{codebase}/src/main/java/com/testcontainers/demo/CustomerService.java[]
+----
+
+Let us understand what is going on in CustomerService class.
+
+* We have the CustomerService constructor initializing JDBC database connection parameters and we have a *getConnection()* method to get a database Connection using the JDBC API
+* We have the *createCustomersTableIfNotExists()* method that creates the customers table if it does not already exist.
+* We have the *createCustomer()* method that inserts a new customer record into the database.
+* We have the *getAllCustomers()* method that fetches all rows from the customers table, creates corresponding Customer objects and returns a list of Customer objects.
+* We have the *deleteAllCustomers()* method to delete all rows from the customers table.
+
+Now let us see how we can test the *CustomerService* logic using different ways of starting and stopping the containers using Testcontainers.
+
+== Using JUnit 5 lifecycle callback methods
+
+While testing with Testcontainers we want to start the required Docker containers, in our case the Postgres container,
+before executing any tests and remove the containers after executing the tests.
+We can use the JUnit 5 *@BeforeAll* and *@AfterAll* lifecycle callback methods to start and stop the containers as follows:
+
+[source,java]
+----
+include::{codebase}/src/test/java/com/testcontainers/demo/CustomerServiceWithLifeCycleCallbacksTest.java[]
+----
+
+Let us understand what is going on in the *CustomerServiceWithLifeCycleCallbacksTest*:
+
+* We have created a Test class and declared an instance of *PostgreSQLContainer* as a *class member*.
+* JUnit 5 will first call *startContainers()* method and then execute all the tests that are annotated with *@Test* annotation. So, we have used JUnit 5's *@BeforeAll* callback method *startContainers()* to start the Postgres container.
+* JUnit 5 will invoke *@BeforeEach* callback method *setUp()* before executing each test method. We have used the *setUp()* method to initialize the *CustomerService* instance. You can also initialize the common data that can be used for all the tests in the *@BeforeEach* callback method.
+* Once all the tests are executed, JUnit 5 will invoke the *@AfterAll* callback method *stopContainers()* in which we are stopping the Postgres container.
+
+This is a common usage pattern of the Testcontainers library for running Testcontainers-based tests.
+There are few things to observe here:
+
+* We have declared *PostgreSQLContainer* as a *static field*, the container is started before running tests and stopped after running all tests declared in this class. But you can also declare it as a non-static field and start a new container before every test method and stop after every test method using the corresponding *@BeforeEach* and *@AfterEach* callback methods as well. However, this is not a recommended practice, as starting a new container for each test will be resource intensive.
+* We have explicitly stopped the Postgres container in the *@AfterAll* callback method. But even if we don't explicitly stop the container, Testcontainers library takes care of stopping and removing the containers by using https://github.com/testcontainers/moby-ryuk[Ryuk Container] behind the scenes.
+
+== Using JUnit 5 Extension annotations
+The Testcontainers library provides a JUnit 5 Extension to simplify the process of starting and stopping containers using annotations.
+In order to use the Testcontainers JUnit 5 Extension you should have added *org.testcontainers:junit-jupiter* test dependency.
+
+Let us see how we can write the same test class using JUnit 5 Extension.
+
+[source,java]
+----
+include::{codebase}/src/test/java/com/testcontainers/demo/CustomerServiceWithJUnit5ExtensionTest.java[]
+----
+
+Let us understand what is going on in the *CustomerServiceWithJUnit5ExtensionTest*.
+
+* Instead of starting and stopping the Postgres container using the *@BeforeAll* and *@AfterAll* callback methods, we have added the *@Testcontainers* annotation to the class and the *@Container* annotation on the static *PostgreSQLContainer* field.
+* The *@Testcontainers* extension will look for all container typed fields in the class containing the *@Container* annotation. If the field is a *static field* then that container will be started once before running all tests of the test instance and will be stopped after executing all of them. If the field is an instance field then a new container is started before every test method and stopped after executing the test.
+
+Again, starting new containers for every test is not recommended as it is a resource intensive operation.
+So, it is recommended to define container definitions as *static* fields as we did in the above test.
+
+== Using Singleton Containers
+
+A common use of the Testcontainers library is to write integration tests with required services as Docker containers.
+As the number of test classes increases, the number of times you need to spin up containers will increase as well.
+So, you may want to start all those containers once in a common base class and all your integration tests should use the same containers.
+In order to implement this, you can have your integration test class inherit from this base class.
+In this case, you can follow the *Singleton Containers Pattern* approach.
+
+Let’s imagine there are two integration tests such as *ProductControllerTests* and *OrderControllerTests* which use b database and *Kafka*.
+Then we can write integration tests using the Singleton Containers Pattern approach as follows.
+
+Create the base integration test class (it can be abstract)
+
+[source,shell]
+----
+package com.testcontainers.demo;
+
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.containers.KafkaContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
+
+public abstract class AbstractIntegrationTest {
+
+   static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(DockerImageName.parse("postgres:15-alpine"));
+   static KafkaContainer kafka = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:5.4.3"));
+
+
+   static {
+       postgres.start();
+       kafka.start();
+   }
+
+   @BeforeAll
+   static void beforeAll() {
+       //register JDBC properties with your app using postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword()
+       //register Kafka broker url with your app using kafka.getBootstrapServers()
+   }
+}
+----
+
+In *AbstractIntegrationTest* we have defined *PostgreSQLContainer* and *KafkaContainer* as *static* fields
+and started the container in a *static* class initializer.
+In the *@BeforeAll* callback method we can obtain the Postgres container JDBC properties and
+the Kafka broker URL and register it with our application configuration depending on the framework you use.
+
+Now we can create integration tests extending *AbstractIntegrationTest* as follows.
+
+[source,java]
+----
+class ProductControllerTest extends AbstractIntegrationTest {
+
+   ProductRepository productRepository;
+
+   @BeforeEach
+   void setUp() {
+       productRepository = new ProductRepository(...);
+       productRepository.deleteAll();
+   }
+
+   @Test
+   void shouldGetAllProducts() {
+       ....
+       ....
+   }
+}
+
+----
+
+The *OrderControllerTest* can be created as follows:
+
+[source,java]
+----
+class OrderControllerTest extends AbstractIntegrationTest {
+
+   OrderRepository orderRepository;
+   OrderEventPublisher orderEventPublisher;
+
+   @BeforeEach
+   void setUp() {
+       orderRepository = new OrderRepository(...);
+       orderEventPublisher = new OrderEventPublisher(...);
+       orderRepository.deleteAll();
+   }
+
+   @Test
+   void shouldPlaceOrder() {
+       ....
+       ....
+       orderRepository.create(order);
+       orderEventPublisher.publishOrderCreatedEvent(order);
+       ....
+       ...
+   }
+}
+----
+
+We have created our integration tests by extending the common base class in which the required Docker containers started only once.
+Testcontainers assigns a special label when creating and starting the containers and uses the *Ryuk Container* behind the scenes
+to remove containers with that label once the JVM process running the tests exited.
+
+Tip: Instead of starting the containers sequentially, we can start the containers in parallel by using *Startables.deepStart(postgres, kafka).join();*
+
+=== A common misconfiguration of Singleton Containers
+A common mistake that people often make is using Singleton Containers in conjunction with the Testcontainers JUnit 5 Extension annotations.
+Let us see an example of such configuration using a Spring Boot example.
+
+[source,java]
+----
+package com.testcontainers.demo;
+
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.KafkaContainer;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
+
+/*
+Using Singleton Containers Pattern with a common base class and
+using Testcontainers JUnit 5 Extension is a bad approach and will not work as of now.
+*/
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Testcontainers
+public abstract class AbstractIntegrationTest {
+
+   @Container
+   static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(DockerImageName.parse("postgres:15-alpine"));
+
+   @Container
+   static KafkaContainer kafka = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:5.4.3"));
+
+   @DynamicPropertySource
+   static void configureProperties(DynamicPropertyRegistry registry) {
+       registry.add("spring.datasource.url", postgres::getJdbcUrl);
+       registry.add("spring.datasource.username", postgres::getUsername);
+       registry.add("spring.datasource.password", postgres::getPassword);
+       registry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
+   }
+}
+----
+
+Here the Testcontainers JUnit 5 extension annotations *@Testcontainers* and *@Container* are used to start the containers and
+register the JDBC parameters and Kafka broker URL using Spring's *DynamicPropertyRegistry*.
+Now, when you run the entire test suite, the tests in the first running test class will be executed successfully,
+but the subsequent tests will fail. Why? Because *@Testcontainers* and *@Container* annotations are used to manage the container lifecycle,
+the containers will be stopped at the end of each test class, but the subsequent tests still try to connect to those stopped containers
+through reusing the previously configured Spring Context and hence the tests will fail.
+
+So, when  using Singleton Containers use a class initializer or *@BeforeAll* lifecycle callback method to start the containers
+instead of using the *@Testcontainers* and *@Container* annotations.
+
+== Summary
+We have looked into an important core concept of Testcontainers and learned how to bootstrap the containers using JUnit 5 lifecycle
+callback methods as well as using JUnit 5 Extension annotations.
+
+We also learned how to use Singleton Containers so that we can start all the containers only once per test suite and run
+all the integration tests using the same containers. Also, we discussed a common mistake people make while using Singleton Containers approach
+and talked about how to use them properly.
+
+To learn more about Testcontainers visit http://testcontainers.com
+
+== Further Reading
+* https://www.testcontainers.org/quickstart/junit_5_quickstart/
+* https://www.testcontainers.org/test_framework_integration/manual_lifecycle_control/#singleton-containers
+* https://testcontainers.com/guides/introducing-testcontainers/
