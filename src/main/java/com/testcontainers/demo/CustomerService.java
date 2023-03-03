@@ -53,7 +53,7 @@ public class CustomerService {
 
     public Optional<Customer> getCustomer(Long customerId) {
         try (Connection conn = this.getConnection()) {
-            PreparedStatement pstmt = conn.prepareStatement("select id,name from customers where id = ?1");
+            PreparedStatement pstmt = conn.prepareStatement("select id,name from customers where id = ?");
             pstmt.setLong(1, customerId);
             ResultSet rs = pstmt.executeQuery();
             if(rs.next()) {
