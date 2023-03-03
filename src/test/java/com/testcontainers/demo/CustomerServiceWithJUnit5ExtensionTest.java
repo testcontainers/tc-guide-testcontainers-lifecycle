@@ -15,7 +15,7 @@ class CustomerServiceWithJUnit5ExtensionTest {
 
     @Container
     static PostgreSQLContainer<?> postgres =
-            new PostgreSQLContainer<>("postgres:15-alpine");
+            new PostgreSQLContainer<>("postgres:15.2-alpine");
 
     CustomerService customerService;
 

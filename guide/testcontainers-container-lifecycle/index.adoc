@@ -159,12 +159,12 @@ So, you may want to start all those containers once in a common base class and a
 In order to implement this, you can have your integration test class inherit from this base class.
 In this case, you can follow the *Singleton Containers Pattern* approach.
 
-Let’s imagine there are two integration tests such as *ProductControllerTests* and *OrderControllerTests* which use b database and *Kafka*.
+Let's imagine there are two integration tests such as *ProductControllerTests* and *OrderControllerTests* which use b database and *Kafka*.
 Then we can write integration tests using the Singleton Containers Pattern approach as follows.
 
 Create the base integration test class (it can be abstract)
 
-[source,shell]
+[source,java]
 ----
 package com.testcontainers.demo;
 
@@ -254,7 +254,8 @@ We have created our integration tests by extending the common base class in whic
 Testcontainers assigns a special label when creating and starting the containers and uses the *Ryuk Container* behind the scenes
 to remove containers with that label once the JVM process running the tests exited.
 
-Tip: Instead of starting the containers sequentially, we can start the containers in parallel by using *Startables.deepStart(postgres, kafka).join();*
+[TIP]
+Instead of starting the containers sequentially, we can start the containers in parallel by using *Startables.deepStart(postgres, kafka).join();*
 
 === A common misconfiguration of Singleton Containers
 A common mistake that people often make is using Singleton Containers in conjunction with the Testcontainers JUnit 5 Extension annotations.
