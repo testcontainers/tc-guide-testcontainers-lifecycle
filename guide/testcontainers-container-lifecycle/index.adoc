@@ -100,10 +100,12 @@ public class CustomerService {
 
 Let us understand what is going on in CustomerService class.
 
-* We have the CustomerService constructor initializing JDBC database connection parameters and we have a *getConnection()* method to get a database Connection using the JDBC API
+* We have the CustomerService constructor initializing JDBC database connection parameters and we have a *getConnection()* method
+  to get a database Connection using the JDBC API
 * We have the *createCustomersTableIfNotExists()* method that creates the customers table if it does not already exist.
 * We have the *createCustomer()* method that inserts a new customer record into the database.
-* We have the *getAllCustomers()* method that fetches all rows from the customers table, creates corresponding Customer objects and returns a list of Customer objects.
+* We have the *getAllCustomers()* method that fetches all rows from the customers table, creates corresponding Customer objects
+  and returns a list of Customer objects.
 * We have the *deleteAllCustomers()* method to delete all rows from the customers table.
 
 Now let us see how we can test the *CustomerService* logic using different ways of starting and stopping the containers using Testcontainers.
@@ -122,15 +124,24 @@ include::{codebase}/src/test/java/com/testcontainers/demo/CustomerServiceWithLif
 Let us understand what is going on in the *CustomerServiceWithLifeCycleCallbacksTest*:
 
 * We have created a Test class and declared an instance of *PostgreSQLContainer* as a *class member*.
-* JUnit 5 will first call *startContainers()* method and then execute all the tests that are annotated with *@Test* annotation. So, we have used JUnit 5's *@BeforeAll* callback method *startContainers()* to start the Postgres container.
-* JUnit 5 will invoke *@BeforeEach* callback method *setUp()* before executing each test method. We have used the *setUp()* method to initialize the *CustomerService* instance. You can also initialize the common data that can be used for all the tests in the *@BeforeEach* callback method.
-* Once all the tests are executed, JUnit 5 will invoke the *@AfterAll* callback method *stopContainers()* in which we are stopping the Postgres container.
+* JUnit 5 will first call *startContainers()* method and then execute all the tests that are annotated with *@Test* annotation.
+  So, we have used JUnit 5's *@BeforeAll* callback method *startContainers()* to start the Postgres container.
+* JUnit 5 will invoke *@BeforeEach* callback method *setUp()* before executing each test method. We have used the *setUp()* method
+  to initialize the *CustomerService* instance. You can also initialize the common data that can be used for all the tests
+  in the *@BeforeEach* callback method.
+* Once all the tests are executed, JUnit 5 will invoke the *@AfterAll* callback method *stopContainers()* in which we are stopping
+  the Postgres container.
 
 This is a common usage pattern of the Testcontainers library for running Testcontainers-based tests.
 There are few things to observe here:
 
-* We have declared *PostgreSQLContainer* as a *static field*, the container is started before running tests and stopped after running all tests declared in this class. But you can also declare it as a non-static field and start a new container before every test method and stop after every test method using the corresponding *@BeforeEach* and *@AfterEach* callback methods as well. However, this is not a recommended practice, as starting a new container for each test will be resource intensive.
-* We have explicitly stopped the Postgres container in the *@AfterAll* callback method. But even if we don't explicitly stop the container, Testcontainers library takes care of stopping and removing the containers by using https://github.com/testcontainers/moby-ryuk[Ryuk Container] behind the scenes.
+* We have declared *PostgreSQLContainer* as a *static field*, the container is started before running tests and stopped after running
+  all tests declared in this class. But you can also declare it as a non-static field and start a new container before every test method
+  and stop after every test method using the corresponding *@BeforeEach* and *@AfterEach* callback methods as well.
+  However, this is not a recommended practice, as starting a new container for each test will be resource intensive.
+* We have explicitly stopped the Postgres container in the *@AfterAll* callback method. But even if we don't explicitly stop the container,
+  Testcontainers library takes care of stopping and removing the containers by
+  using https://github.com/testcontainers/moby-ryuk[Ryuk Container] behind the scenes.
 
 == Using JUnit 5 Extension annotations
 The Testcontainers library provides a JUnit 5 Extension to simplify the process of starting and stopping containers using annotations.
@@ -145,8 +156,12 @@ include::{codebase}/src/test/java/com/testcontainers/demo/CustomerServiceWithJUn
 
 Let us understand what is going on in the *CustomerServiceWithJUnit5ExtensionTest*.
 
-* Instead of starting and stopping the Postgres container using the *@BeforeAll* and *@AfterAll* callback methods, we have added the *@Testcontainers* annotation to the class and the *@Container* annotation on the static *PostgreSQLContainer* field.
-* The *@Testcontainers* extension will look for all container typed fields in the class containing the *@Container* annotation. If the field is a *static field* then that container will be started once before running all tests of the test instance and will be stopped after executing all of them. If the field is an instance field then a new container is started before every test method and stopped after executing the test.
+* Instead of starting and stopping the Postgres container using the *@BeforeAll* and *@AfterAll* callback methods,
+  we have added the *@Testcontainers* annotation to the class and the *@Container* annotation on the static *PostgreSQLContainer* field.
+* The *@Testcontainers* extension will look for all container typed fields in the class containing the *@Container* annotation.
+  If the field is a *static field* then that container will be started once before running all tests of the test instance and
+  will be stopped after executing all of them. If the field is an instance field then a new container is started before every test method
+  and stopped after executing the test.
 
 Again, starting new containers for every test is not recommended as it is a resource intensive operation.
 So, it is recommended to define container definitions as *static* fields as we did in the above test.

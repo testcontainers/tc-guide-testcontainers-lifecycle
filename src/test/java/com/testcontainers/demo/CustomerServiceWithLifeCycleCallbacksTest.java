@@ -41,8 +41,8 @@ class CustomerServiceWithLifeCycleCallbacksTest {
 
         Optional<Customer> customer = customerService.getCustomer(1L);
         assertTrue(customer.isPresent());
-        assertEquals(1L, customer.get().getId());
-        assertEquals("George", customer.get().getName());
+        assertEquals(1L, customer.get().id());
+        assertEquals("George", customer.get().name());
     }
 
     @Test
