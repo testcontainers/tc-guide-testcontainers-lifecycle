@@ -340,6 +340,6 @@ and talked about how to use them properly.
 To learn more about Testcontainers visit http://testcontainers.com
 
 == Further Reading
-* https://www.testcontainers.org/quickstart/junit_5_quickstart/
-* https://www.testcontainers.org/test_framework_integration/manual_lifecycle_control/#singleton-containers
-* https://testcontainers.com/guides/introducing-testcontainers/
+* https://www.testcontainers.org/quickstart/junit_5_quickstart/[Testcontainers JUnit 5 QuickStart]
+* https://www.testcontainers.org/test_framework_integration/manual_lifecycle_control/#singleton-containers[Testcontainers Singleton Containers Pattern]
+* https://testcontainers.com/guides/testing-spring-boot-rest-api-using-testcontainers/[Getting started with Testcontainers in a Java Spring Boot Project]
