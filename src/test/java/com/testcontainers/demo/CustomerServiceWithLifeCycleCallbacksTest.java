@@ -1,57 +1,61 @@
 package com.testcontainers.demo;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.PostgreSQLContainer;
 
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 class CustomerServiceWithLifeCycleCallbacksTest {
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15.2-alpine");
 
-    CustomerService customerService;
+  static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
+    "postgres:15.2-alpine"
+  );
 
-    @BeforeAll
-    static void startContainers() {
-        postgres.start();
-    }
+  CustomerService customerService;
 
-    @AfterAll
-    static void stopContainers() {
-        postgres.stop();
-    }
+  @BeforeAll
+  static void startContainers() {
+    postgres.start();
+  }
 
-    @BeforeEach
-    void setUp() {
-        customerService = new CustomerService(postgres.getJdbcUrl(),
-                postgres.getUsername(),
-                postgres.getPassword());
-        customerService.deleteAllCustomers();
-    }
+  @AfterAll
+  static void stopContainers() {
+    postgres.stop();
+  }
 
-    @Test
-    void shouldCreateCustomer() {
-        customerService.createCustomer(new Customer(1L, "George"));
+  @BeforeEach
+  void setUp() {
+    customerService =
+      new CustomerService(
+        postgres.getJdbcUrl(),
+        postgres.getUsername(),
+        postgres.getPassword()
+      );
+    customerService.deleteAllCustomers();
+  }
 
-        Optional<Customer> customer = customerService.getCustomer(1L);
-        assertTrue(customer.isPresent());
-        assertEquals(1L, customer.get().id());
-        assertEquals("George", customer.get().name());
-    }
+  @Test
+  void shouldCreateCustomer() {
+    customerService.createCustomer(new Customer(1L, "George"));
 
-    @Test
-    void shouldGetCustomers() {
-        customerService.createCustomer(new Customer(1L, "George"));
-        customerService.createCustomer(new Customer(2L, "John"));
+    Optional<Customer> customer = customerService.getCustomer(1L);
+    assertTrue(customer.isPresent());
+    assertEquals(1L, customer.get().id());
+    assertEquals("George", customer.get().name());
+  }
 
-        List<Customer> customers = customerService.getAllCustomers();
-        assertEquals(2, customers.size());
-    }
+  @Test
+  void shouldGetCustomers() {
+    customerService.createCustomer(new Customer(1L, "George"));
+    customerService.createCustomer(new Customer(2L, "John"));
 
+    List<Customer> customers = customerService.getAllCustomers();
+    assertEquals(2, customers.size());
+  }
 }
