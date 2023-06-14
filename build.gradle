@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'com.diffplug.spotless' version "6.18.0"
 }
 
 group = 'com.testcontainers'
@@ -18,11 +19,11 @@ repositories {
 
 dependencies {
     implementation 'org.postgresql:postgresql:42.6.0'
-    implementation 'ch.qos.logback:logback-classic:1.4.6'
+    implementation 'ch.qos.logback:logback-classic:1.4.7'
 
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
-    testImplementation 'org.testcontainers:junit-jupiter:1.18.0'
-    testImplementation 'org.testcontainers:postgresql:1.18.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.3'
+    testImplementation 'org.testcontainers:junit-jupiter:1.18.3'
+    testImplementation 'org.testcontainers:postgresql:1.18.3'
 }
 
 tasks.named('test') {
@@ -31,5 +32,14 @@ tasks.named('test') {
         events = ["PASSED", "FAILED", "SKIPPED"]
         showStandardStreams = true
         exceptionFormat = "full"
+    }
+}
+
+spotless {
+    java {
+        importOrder()
+        removeUnusedImports()
+        palantirJavaFormat("2.30.0")
+        formatAnnotations()
     }
 }
