@@ -199,8 +199,8 @@ import org.testcontainers.utility.DockerImageName;
 
 public abstract class AbstractIntegrationTest {
 
-   static PostgreSQLContainer<?> postgres =
-        new PostgreSQLContainer<>(DockerImageName.parse("postgres:16-alpine"));
+   static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
+           DockerImageName.parse("postgres:16-alpine"));
    static KafkaContainer kafka = new KafkaContainer(
            DockerImageName.parse("confluentinc/cp-kafka:7.5.0"));
 
@@ -211,7 +211,8 @@ public abstract class AbstractIntegrationTest {
 
    @BeforeAll
    static void beforeAll() {
-       //register JDBC properties with your app using postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword()
+       //register JDBC properties with your app using
+       // postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword()
        //register Kafka broker url with your app using kafka.getBootstrapServers()
    }
 }
@@ -298,20 +299,21 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 /*
-Using Singleton Containers Pattern with a common base class and
-using Testcontainers JUnit 5 Extension is a bad approach and will not work as of now.
+ Using Singleton Containers Pattern with a common base class and
+ using Testcontainers JUnit 5 Extension is a bad approach and will not work as of now.
 */
+
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
 public abstract class AbstractIntegrationTest {
 
    @Container
-   static PostgreSQLContainer<?> postgres =
-        new PostgreSQLContainer<>(DockerImageName.parse("postgres:16-alpine"));
+   static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
+           DockerImageName.parse("postgres:16-alpine"));
 
    @Container
-   static KafkaContainer kafka =
-        new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.5.0"));
+   static KafkaContainer kafka = new KafkaContainer(
+           DockerImageName.parse("confluentinc/cp-kafka:7.5.0"));
 
    @DynamicPropertySource
    static void configureProperties(DynamicPropertyRegistry registry) {
