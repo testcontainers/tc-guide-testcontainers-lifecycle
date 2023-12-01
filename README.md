@@ -1,6 +1,6 @@
 # Testcontainers LifeCycle Guide
 
-This is sample code for [Testcontainers LifeCycle Guide](https://testcontainers.com/guides/testcontainers-lifecycle) guide.
+This is sample code for [Testcontainers LifeCycle Guide](https://testcontainers.com/guides/testcontainers-container-lifecycle) guide.
 
 ## 1. Setup Environment
 Make sure you have Java 8+ and a [compatible Docker environment](https://www.testcontainers.org/supported_docker_environment/) installed.

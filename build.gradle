@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'com.diffplug.spotless' version "6.18.0"
+    id 'com.diffplug.spotless' version "6.23.0"
 }
 
 group = 'com.testcontainers'
@@ -19,11 +19,11 @@ repositories {
 
 dependencies {
     implementation 'org.postgresql:postgresql:42.6.0'
-    implementation 'ch.qos.logback:logback-classic:1.4.7'
+    implementation 'ch.qos.logback:logback-classic:1.4.8'
 
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.3'
-    testImplementation 'org.testcontainers:junit-jupiter:1.18.3'
-    testImplementation 'org.testcontainers:postgresql:1.18.3'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
+    testImplementation 'org.testcontainers:junit-jupiter:1.19.3'
+    testImplementation 'org.testcontainers:postgresql:1.19.3'
 }
 
 tasks.named('test') {
@@ -39,7 +39,13 @@ spotless {
     java {
         importOrder()
         removeUnusedImports()
-        palantirJavaFormat("2.30.0")
+        prettier(['prettier': '3.0.3', 'prettier-plugin-java': '2.3.0'])
+            .config([
+                'parser': 'java',
+                'tabWidth': 2,
+                'printWidth': 80,
+                'plugins': ['prettier-plugin-java']
+            ])
         formatAnnotations()
     }
 }

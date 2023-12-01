@@ -15,7 +15,7 @@ tags:
 :toclevels: 2
 :codebase: https://raw.githubusercontent.com/testcontainers/tc-guide-testcontainers-lifecycle/main
 
-In this guide you will learn how to
+In this guide, you will learn how to
 
 * Run an instance of a Docker container using the Testcontainers API
 * Manage the lifecycle of a container using JUnit 5 lifecycle callbacks
@@ -199,8 +199,10 @@ import org.testcontainers.utility.DockerImageName;
 
 public abstract class AbstractIntegrationTest {
 
-   static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(DockerImageName.parse("postgres:15-alpine"));
-   static KafkaContainer kafka = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:5.4.3"));
+   static PostgreSQLContainer<?> postgres =
+        new PostgreSQLContainer<>(DockerImageName.parse("postgres:16-alpine"));
+   static KafkaContainer kafka = new KafkaContainer(
+           DockerImageName.parse("confluentinc/cp-kafka:7.5.0"));
 
    static {
        postgres.start();
@@ -304,10 +306,12 @@ using Testcontainers JUnit 5 Extension is a bad approach and will not work as of
 public abstract class AbstractIntegrationTest {
 
    @Container
-   static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(DockerImageName.parse("postgres:15-alpine"));
+   static PostgreSQLContainer<?> postgres =
+        new PostgreSQLContainer<>(DockerImageName.parse("postgres:16-alpine"));
 
    @Container
-   static KafkaContainer kafka = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:5.4.3"));
+   static KafkaContainer kafka =
+        new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.5.0"));
 
    @DynamicPropertySource
    static void configureProperties(DynamicPropertyRegistry registry) {
