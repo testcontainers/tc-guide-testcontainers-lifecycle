@@ -202,7 +202,7 @@ public abstract class AbstractIntegrationTest {
    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
            DockerImageName.parse("postgres:16-alpine"));
    static KafkaContainer kafka = new KafkaContainer(
-           DockerImageName.parse("confluentinc/cp-kafka:7.5.0"));
+           DockerImageName.parse("confluentinc/cp-kafka:7.6.1"));
 
    static {
        postgres.start();
@@ -313,7 +313,7 @@ public abstract class AbstractIntegrationTest {
 
    @Container
    static KafkaContainer kafka = new KafkaContainer(
-           DockerImageName.parse("confluentinc/cp-kafka:7.5.0"));
+           DockerImageName.parse("confluentinc/cp-kafka:7.6.1"));
 
    @DynamicPropertySource
    static void configureProperties(DynamicPropertyRegistry registry) {
